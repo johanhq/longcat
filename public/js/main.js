@@ -140,7 +140,7 @@ const setActive = ( elm ) => {
 
 const createImage = ( name ) => {
     const img = new Image();
-    img.src = `/img/${name}.png`;
+    img.src = `img/${name}.png`;
     return img; 
 }
 
