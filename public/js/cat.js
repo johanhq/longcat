@@ -25,7 +25,7 @@ Img[Part.TURNRIGHT] = 'longcat_is_long_2_turnright';
 Img[Part.TURNDOWNLEFT] = 'longcat_is_long_2_downleft'; 
 Img[Part.TURNDOWNRIGHT] = 'longcat_is_long_2_downright'; 
 Img[Part.BODYHORIZONTAL] = 'longcat_is_long_2_right';
-Img[Part.LONGCAT] = 'longcat';
+Img[Part.LONGCAT] = 'long_cat';
 
 const parseMatrix = ( stringMatrix ) => {
    const rows = stringMatrix.split('\n');
