@@ -37,19 +37,25 @@ describe('Testing if it is a cat', () => {
 describe('Testing what part we have', () => {
 
   const matrix = [
-    [1,0,0,1,0],
-    [0,6,8,4,0],
-    [0,3,0,0,0],
-    [0,5,7,0,0],
-    [0,0,2,0,0]
+    [11, 0,0,1,0],
+    [ 0, 6,8,4,0],
+    [ 0, 3,0,0,0],
+    [ 0, 5,7,0,0],
+    [ 0, 0,2,0,0],
+    [ 0, 0,0,0,0],
+    [ 0,10,9,0,0]
   ]; 
 
   test('Is it a head?', () => {
     expect( checkPart( 3, 0, matrix ) ).toBe( Part.HEAD );
   });
 
-  test('Is it a lonely head is a head?', () => {
-    expect( checkPart( 0, 0, matrix ) ).toBe( Part.HEAD );
+  test('Is it a head to the left?', () => {
+    expect( checkPart( 1, 6, matrix ) ).toBe( Part.HEADLEFT );
+  });
+
+  test('Is it a lonely part it is a long cat?', () => {
+    expect( checkPart( 0, 0, matrix ) ).toBe( Part.LONGCAT );
   });
 
   test('Is it the body?', () => { 
@@ -58,6 +64,10 @@ describe('Testing what part we have', () => {
 
   test('Is it the legs?', () => {
     expect( checkPart( 2, 4, matrix ) ).toBe( Part.LEGS );
+  });
+
+  test('Is it the legs to the right?', () => {
+    expect( checkPart( 2, 6, matrix ) ).toBe( Part.LEGSRIGHT );
   });
 
   test('Are we turning left?', () => {

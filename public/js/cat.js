@@ -7,19 +7,25 @@ const Part = Object.freeze({
     TURNRIGHT: 5,
     TURNDOWNLEFT: 6, 
     TURNDOWNRIGHT: 7,
-    BODYHORIZONTAL: 8
+    BODYHORIZONTAL: 8,
+    LEGSRIGHT: 9,
+    HEADLEFT: 10,
+    LONGCAT: 11,
 });
-const CAT = 'C'; 
+
 const Img = []; 
 Img[Part.BLANK] = 'blank'; 
-Img[Part.HEAD] = 'longcat_is_long_1'; 
+Img[Part.HEAD] = 'longcat_is_long_1';
+Img[Part.HEADLEFT] = 'longcat_is_long_1_2';
 Img[Part.LEGS] = 'longcat_is_long_3'; 
+Img[Part.LEGSRIGHT] = 'longcat_is_long_3_2';
 Img[Part.BODY] = 'longcat_is_long_2'; 
 Img[Part.TURNLEFT] = 'longcat_is_long_2_turnleft'; 
 Img[Part.TURNRIGHT] = 'longcat_is_long_2_turnright'; 
 Img[Part.TURNDOWNLEFT] = 'longcat_is_long_2_downleft'; 
 Img[Part.TURNDOWNRIGHT] = 'longcat_is_long_2_downright'; 
-Img[Part.BODYHORIZONTAL] = 'longcat_is_long_2_right'; 
+Img[Part.BODYHORIZONTAL] = 'longcat_is_long_2_right';
+Img[Part.LONGCAT] = 'longcat';
 
 const parseMatrix = ( stringMatrix ) => {
    const rows = stringMatrix.split('\n');
@@ -45,18 +51,28 @@ const isCat = ( X, Y, matrix) => {
 
 const CONNECTING_SOUTH = [ Part.HEAD, Part.BODY, Part.TURNDOWNLEFT, Part.TURNDOWNRIGHT ];
 const CONNECTING_NORTH = [ Part.BODY, Part.LEGS, Part.TURNLEFT, Part.TURNRIGHT ];
-const CONNECTING_VEST = [ Part.BODYHORIZONTAL, Part.TURNDOWNRIGHT, Part.TURNLEFT ];
-const CONNECTING_EAST = [ Part.BODYHORIZONTAL, Part.TURNDOWNLEFT, Part.TURNRIGHT ];
+const CONNECTING_VEST = [ Part.BODYHORIZONTAL, Part.TURNDOWNRIGHT, Part.TURNLEFT, Part.LEGSRIGHT ];
+const CONNECTING_EAST = [ Part.BODYHORIZONTAL, Part.TURNDOWNLEFT, Part.TURNRIGHT, Part.HEADLEFT];
 
-const NO_CONNECTION_SOUTH = [ Part.BLANK, Part.LEGS, Part.TURNLEFT, Part.TURNRIGHT, Part.BODYHORIZONTAL ];
-const NO_CONNECTION_NORTH = [ Part.BLANK, Part.HEAD, Part.TURNDOWNLEFT, Part.TURNDOWNRIGHT, Part.BODYHORIZONTAL ];
-const NO_CONNECTION_VEST = [ Part.BLANK, Part.HEAD, Part.BODY, Part.LEGS, Part.TURNDOWNLEFT, Part.TURNRIGHT ];
-const NO_CONNECTION_EAST = [ Part.BLANK, Part.HEAD, Part.BODY, Part.LEGS, Part.TURNDOWNRIGHT, Part.TURNLEFT ];
+const NO_CONNECTION_SOUTH = [ Part.BLANK, Part.LEGS, Part.TURNLEFT, Part.TURNRIGHT, Part.BODYHORIZONTAL, Part.LEGSRIGHT, Part.HEADLEFT ];
+const NO_CONNECTION_NORTH = [ Part.BLANK, Part.HEAD, Part.TURNDOWNLEFT, Part.TURNDOWNRIGHT, Part.BODYHORIZONTAL, Part.LEGSRIGHT, Part.HEADLEFT ];
+const NO_CONNECTION_VEST = [ Part.BLANK, Part.HEAD, Part.BODY, Part.LEGS, Part.TURNDOWNLEFT, Part.TURNRIGHT, Part.HEADLEFT ];
+const NO_CONNECTION_EAST = [ Part.BLANK, Part.HEAD, Part.BODY, Part.LEGS, Part.TURNDOWNRIGHT, Part.TURNLEFT, Part.LEGSRIGHT ];
 
+
+const isLongcat = ( { n, s, v, e } ) => NO_CONNECTION_SOUTH.includes( n ) &&
+    NO_CONNECTION_VEST.includes( e ) &&
+    NO_CONNECTION_NORTH.includes( s ) &&
+    NO_CONNECTION_EAST.includes( v );
 
 const isHead = ( { n, s, v, e } ) => NO_CONNECTION_SOUTH.includes( n ) &&
     NO_CONNECTION_VEST.includes( e ) &&
-    ( CONNECTING_NORTH.includes( s ) || s === Part.BLANK ) &&
+    CONNECTING_NORTH.includes( s ) &&
+    NO_CONNECTION_EAST.includes( v );
+
+const isHeadLeft = ( { n, s, v, e } ) => NO_CONNECTION_SOUTH.includes( n ) &&
+    CONNECTING_VEST.includes( e ) &&
+    NO_CONNECTION_NORTH.includes( s ) &&
     NO_CONNECTION_EAST.includes( v );
 
 
@@ -68,7 +84,12 @@ const isBody = ( { n, s, v, e } ) => CONNECTING_SOUTH.includes( n ) &&
 const isLegs = ( { n, s, v, e } ) => CONNECTING_SOUTH.includes( n ) &&
     NO_CONNECTION_VEST.includes( e ) &&
     NO_CONNECTION_NORTH.includes( s ) &&
-    NO_CONNECTION_EAST.includes( v )     
+    NO_CONNECTION_EAST.includes( v )    
+    
+const isLegsRight = ( { n, s, v, e } ) => NO_CONNECTION_SOUTH.includes( n ) &&
+    NO_CONNECTION_VEST.includes( e ) &&
+    NO_CONNECTION_NORTH.includes( s ) &&
+    CONNECTING_EAST.includes( v )       
 
 const isTurnLeft = ( { n, s, v, e } ) => CONNECTING_SOUTH.includes( n ) &&
     NO_CONNECTION_VEST.includes( e ) &&
@@ -108,8 +129,14 @@ const getConnectingParts = ( x, y, matrix) => {
 }     
 const checkPart = ( X, Y, matrix, cat = false ) => {
     let connects = getConnectingParts( X, Y, matrix);
-    if ( isHead( connects ) ) {
-        return Part.HEAD;        
+    if (isLongcat( connects )) {
+        return Part.LONGCAT;
+    } else if ( isHead( connects ) ) {
+        return Part.HEAD;
+    } else if ( isHeadLeft( connects ) ) {
+        return Part.HEADLEFT;         
+    } else if ( isLegsRight( connects ) ) {
+        return Part.LEGSRIGHT;
     } else if ( isBody( connects ) ) {
         return Part.BODY;
     } else if ( isLegs( connects ) ) {
@@ -131,9 +158,9 @@ const checkPart = ( X, Y, matrix, cat = false ) => {
 
 const checkByPath = ( part, lastPart ) => {
     if ( part.x > lastPart.x ) {
-        return Part.BODYHORIZONTAL;
+        return Part.LEGSRIGHT;
     } else if ( part.x < lastPart.x ) {
-        return Part.BODYHORIZONTAL;
+        return Part.HEADLEFT;
     } else if ( part.y > lastPart.y ) {
         return Part.LEGS;
     } else if ( part.y < lastPart.y ) {
