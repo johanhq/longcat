@@ -27,7 +27,7 @@ const refresh = ( canvas, grid ) => {
     createGrid( grid, canvas.getContext("2d") );
 }
 
-const gridPos = ( N, { size } ) => Math.floor(N / size);
+const gridPos = ( N, { size } ) => Math.floor(N / ( size +1 ));
 
 const initCanvas = ( canvas, grid ) => {
     const context = canvas.getContext("2d");
@@ -70,7 +70,7 @@ const initCanvas = ( canvas, grid ) => {
         context.drawImage(images[matrix[ y ][ x ]], position( x, size ), position( y, size ), size, size);
     }
 
-    let lastPart = {x:-1,y:-1}
+    let lastPart = { x:-1, y:-1 }
     function draw(e) {
         if ( !drawing ) return;
         
@@ -146,7 +146,7 @@ const createImage = ( name ) => {
 
 (() => {
     window.onload = () => {
-        const grid = { x:10, y:10, size: 40}
+        const grid = { x:20, y:20, size: 30}
         const canvas = document.getElementById("canvas");
         initCanvas( canvas, grid );
     }
