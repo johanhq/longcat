@@ -127,7 +127,7 @@ const getConnectingParts = ( x, y, matrix) => {
         e: getPart( x+1, y, HW, matrix),
     }
 }     
-const checkPart = ( X, Y, matrix, cat = false ) => {
+const checkPart = ( X, Y, matrix ) => {
     let connects = getConnectingParts( X, Y, matrix);
     if (isLongcat( connects )) {
         return Part.LONGCAT;
@@ -173,7 +173,8 @@ const lastNonBlank = ( element ) => element !== Part.BLANK;
 const trimTrailingBlank = ( array ) => array.slice( 0, array.findLastIndex( lastNonBlank ) + 1 );
 
 const createEmojiString = matrix => {
-    return matrix.map( row => trimTrailingBlank( row ).map( part => `:${Img[part]}:`).join('') ).join('\n');
+    let trimmed = matrix.map( row => trimTrailingBlank( row ).map( part => `:${Img[part]}:`).join('') );
+    return trimmed.slice( 0, trimmed.findLastIndex( row => row.length ) + 1 ).join('\n');
 }
 
 export { Part, Img, parseMatrix, getHeightAndWidth, isCat, checkPart, trimTrailingBlank, createEmojiString, checkByPath, getConnectingParts }

@@ -133,15 +133,26 @@ describe('Testing to create some nice emoji strings!', () => {
     ];
     expect( createEmojiString( matrix ) ).toBe(':blank::longcat_is_long_1:\n:blank::longcat_is_long_2:\n:blank::longcat_is_long_3:');
   });
+
+  test('A small long cat with emty lines', () => {
+    const matrix = [
+      [0,1,0],
+      [0,3,0],
+      [0,2,0],
+      [0,0,0],
+      [0,0,0]
+    ];
+    expect( createEmojiString( matrix ) ).toBe(':blank::longcat_is_long_1:\n:blank::longcat_is_long_2:\n:blank::longcat_is_long_3:');
+  });
 });
 
 describe('Testing based on path', () => {
     test('Testing moving right', () => {
-      expect( checkByPath( { x:1, y:1 }, { x:0, y:1 } ) ).toBe( Part.BODYHORIZONTAL );
+      expect( checkByPath( { x:1, y:1 }, { x:0, y:1 } ) ).toBe( Part.LEGSRIGHT );
     });
 
     test('Testing moving left', () => {
-      expect( checkByPath( { x:0, y:1 }, { x:1, y:1 } ) ).toBe( Part.BODYHORIZONTAL );
+      expect( checkByPath( { x:0, y:1 }, { x:1, y:1 } ) ).toBe( Part.HEADLEFT );
     });
 
     test('Testing moving up', () => {
