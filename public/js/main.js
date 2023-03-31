@@ -1,4 +1,4 @@
-import { checkPart, createEmojiString, Img, checkByPath } from './cat.js';
+import { checkPart, createEmojiString, Part, checkByPath, createMatrix } from './cat.js';
 
 const setBackground = ( canvas, context ) => {
     context.fillStyle = 'rgb(76, 81, 92)';
@@ -17,11 +17,6 @@ const createGrid = ( grid, context) => {
     }
 }
 
-const createEmptyMatrix = ( {x, y} ) => {
-    let rows = new Array( y ).fill( new Array( x ).fill(0));
-    return rows.map( () => new Array( x ).fill(0));
-}
-
 const refresh = ( canvas, grid ) => {
     setBackground( canvas, canvas.getContext("2d") );
     createGrid( grid, canvas.getContext("2d") );
@@ -34,14 +29,18 @@ const initCanvas = ( canvas, grid ) => {
     canvas.height = grid.y * grid.size + grid.y;
     canvas.width = grid.x * grid.size + grid.x;
 
-    let images = Img.map( createImage);
+    let images = Object.values( Part ).reduce( ( imgs, part ) => {
+        imgs[ part.name ] = createImage( part.name );
+        return imgs;
+    }, {} );
 
     refresh( canvas, grid )
 
-    let matrix = createEmptyMatrix( grid );
+    let matrix = createMatrix( grid );
 
     let drawing = false;
     let erase = false;
+
     function startDrawing(e) {
         drawing = true;
         draw(e);
@@ -49,7 +48,7 @@ const initCanvas = ( canvas, grid ) => {
 
     function endDrawing(e) {
         drawing = false;
-        lastPart = {x:-1,y:-1};
+        lastPart = { x: -1, y: -1 };
     }
     
     function getMousePos(canvas, evt) {
@@ -63,11 +62,11 @@ const initCanvas = ( canvas, grid ) => {
         }
     }
         
- 
     const addImage = ( {x, y} ) => {
         let size = grid.size;
-        context.fillRect( position( x, size ), position( y, size ), size, size);
-        context.drawImage(images[matrix[ y ][ x ]], position( x, size ), position( y, size ), size, size);
+        let name = matrix[ y ][ x ].name;
+        context.fillRect( position( x, size ), position( y, size ), size, size);        
+        context.drawImage( images[ name ], position( x, size ), position( y, size ), size, size);
     }
 
     let lastPart = { x:-1, y:-1 }
@@ -96,7 +95,7 @@ const initCanvas = ( canvas, grid ) => {
         let size = grid.size;
         let { mx, my } = getMousePos(canvas, e);
         let x = gridPos( mx, grid ), y = gridPos( my, grid );
-        matrix[ y ][ x ] = 0;
+        matrix[ y ][ x ] = Part.BLANK;
         context.fillRect( position( x, size ) , position( y, size ), size, size); 
     }
     
@@ -121,7 +120,7 @@ const initCanvas = ( canvas, grid ) => {
     let refreshElm = document.querySelector('#refresh');
     refreshElm.addEventListener('click', () => {
         refresh( canvas, grid );
-        matrix = createEmptyMatrix( grid );  
+        matrix = createMatrix( grid );  
     });
     refreshElm.addEventListener( 'mousedown', () => setActive( refreshElm ) );
     refreshElm.addEventListener( 'mouseup', () => setActive( refreshElm ) );
