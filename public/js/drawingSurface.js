@@ -13,24 +13,24 @@ export const BUTTONS_AND_SEPARATORS = [
 ];
 
 export class Canvas {
-    constructor( grid ) {
-        const { x, y, size} = grid ?? { x: 0, y: 0, size: 0};
+    constructor(grid) {
+        const { x, y, size } = grid ?? { x: 0, y: 0, size: 0 };
         this.canvas = document.createElement('canvas');
         this.context = this.canvas.getContext('2d');
-        this.setHeight(y * ( size + 1 ));
-        this.setWidth(x * ( size + 1 ));
+        this.setHeight(y * (size + 1));
+        this.setWidth(x * (size + 1));
         this.numCols = x;
         this.numRows = y;
         this.gridSize = size;
         this.newGrid();
     }
 
-    setHeight( height ) {
+    setHeight(height) {
         this.height = height;
         this.canvas.height = height;
     }
 
-    setWidth( width ) {
+    setWidth(width) {
         this.width = width;
         this.canvas.width = width;
     }
@@ -53,7 +53,7 @@ export class Canvas {
         this.context.fillRect(0, 0, this.width, this.height);
     };
 
-    createGridPart = ( coordinate ) => {
+    createGridPart = (coordinate) => {
         const [x, y] = this.getGridPosition(coordinate);
         this.context.fillStyle = 'rgb(34,37,41)';
         this.context.fillRect(x, y, this.gridSize, this.gridSize);
@@ -63,7 +63,7 @@ export class Canvas {
         const rects = Array.from({ length: this.numRows }, (_, row) =>
             Array.from({ length: this.numCols }, (_, col) => ({ row, col }))
         );
-    
+
         rects.forEach((row, i) =>
             row.forEach(({ row, col }) => {
                 this.createGridPart({ x: col, y: row });
@@ -71,15 +71,15 @@ export class Canvas {
         );
     };
 
-    getGridPosition = ( { x, y } ) => [(x * (this.gridSize + 1)), (y * (this.gridSize + 1))];
+    getGridPosition = ({ x, y }) => [(x * (this.gridSize + 1)), (y * (this.gridSize + 1))];
 
-    addImage = (coordinate, image ) => {
-        const [x, y] = this.getGridPosition( coordinate) ;
-        this.createGridPart( coordinate );
+    addImage = (coordinate, image) => {
+        const [x, y] = this.getGridPosition(coordinate);
+        this.createGridPart(coordinate);
         this.context.drawImage(image, x, y, this.gridSize, this.gridSize);
     };
 
-    getGridPart( event ) {
+    getGridPart(event) {
         const rect = this.canvas.getBoundingClientRect();
         const x = Math.floor((event.clientX - rect.left) / (this.gridSize + 1));
         const y = Math.floor((event.clientY - rect.top) / (this.gridSize + 1));
@@ -99,7 +99,7 @@ export class Separator {
 }
 
 export class Icon {
-    constructor( icon ) {
+    constructor(icon) {
         this.icon = document.createElement('i');
         this.icon.classList.add('fa-solid', icon);
     }
@@ -110,7 +110,7 @@ export class Icon {
 }
 
 export class Button {
-    constructor( name, icon, active = false ) {
+    constructor(name, icon, active = false) {
         this.button = document.createElement('div');
         this.button.classList.add('button');
         this.setActive(active);
@@ -118,8 +118,8 @@ export class Button {
         this.button.appendChild(new Icon(icon).getIcon());
     }
 
-    setActive = ( active ) => {
-        if ( active ) {
+    setActive = (active) => {
+        if (active) {
             this.button.classList.add('active');
         } else {
             this.button.classList.remove('active');
@@ -141,7 +141,7 @@ export class Tools {
         this.tools.classList.add('tools');
         this.buttons = {};
     }
-  
+
     getTools() {
         return this.tools;
     }
@@ -150,22 +150,22 @@ export class Tools {
         return this.buttons;
     }
 
-    getButton( name ) {
+    getButton(name) {
         return this.buttons[name];
     }
 
-    addButton = ( name, icon, active ) => {
-        const button = new Button( name, icon, active );
+    addButton = (name, icon, active) => {
+        const button = new Button(name, icon, active);
         this.tools.appendChild(button.getButton());
         this.buttons[name] = button;
     }
 
-    addButtons = ( buttons ) => {
+    addButtons = (buttons) => {
         buttons.forEach(({ name, icon, active, separator }) => {
-            if ( separator ) {
+            if (separator) {
                 this.addSeparator();
             } else {
-                this.addButton( name, icon, active );
+                this.addButton(name, icon, active);
             }
         });
     }
@@ -177,27 +177,29 @@ export class Tools {
 }
 
 export class DrawingSurface {
-    constructor( id, grid ) {
-        this.drawingSurface = document.getElementById( id );
+    constructor(id, grid) {
+        this.drawingSurface = document.getElementById(id);
         this.grid = grid;
-        this.canvas = new Canvas( this.grid );
+        this.canvas = new Canvas(this.grid);
         this.tools = new Tools();
         this.tools.addButtons(BUTTONS_AND_SEPARATORS);
-        this.images = preeLoadImages( Object.values(Part).map( (part) => part.name ) );
-        this.drawingSurface.appendChild( this.canvas.getCanvas() );
-        this.drawingSurface.appendChild( this.tools.getTools() );
-        this.matrix = createMatrix( this.grid );
+        this.images = preeLoadImages(Object.values(Part).map((part) => part.name));
+        this.drawingSurface.appendChild(this.canvas.getCanvas());
+        this.drawingSurface.appendChild(this.tools.getTools());
+        this.matrix = createMatrix(this.grid);
         this.drawing = false;
         this.eraser = false;
         this.lastPart = null;
         this.part = null;
         this.bindButtonEvents();
+        this.bindCanvasEvents();
+        this.bindKeyboardEvents();
     }
 
     bindButtonEvents() {
         initButtons(this.tools.getButtons(), () => {
             return this.printMatrix();
-        }, ( eraseMode ) => {
+        }, (eraseMode) => {
             this.eraser = eraseMode;
         }, () => {
             this.resetMatrix();
@@ -207,43 +209,80 @@ export class DrawingSurface {
     bindCanvasEvents() {
         ['mousedown', 'mousemove', 'mouseup'].forEach((event) => {
             this.canvas.getCanvas().addEventListener(event, (e) => {
-                if ( e.type === 'mousedown' ) this.startDrawing(); // Set drawing to true when mouse is down
-                if ( e.type === 'mouseup' ) this.stopDrawing(); // Set drawing to false when mouse is up
+                if (e.type === 'mousedown') this.startDrawing(); // Set drawing to true when mouse is down
+                if (e.type === 'mouseup') this.stopDrawing(); // Set drawing to false when mouse is up
                 if (!this.isDrawing()) return; // If drawing is false, we don't want to do anything
-            
+
                 this.setPart(e);
 
-                if ( !this.part ) return; // If part is null, we don't want to do anything
+                if (!this.part) return; // If part is null, we don't want to do anything
 
-                if ( this.isErasing() ) {
+                if (this.isErasing()) {
                     this.resetGridPart();
                 } else {
-                    if ( e.type === 'mousedown' ) {
+                    if (e.type === 'mousedown') {
                         const { name: partName } = updateMatrix(this.matrix, this.part);
-                        this.addImage( this.part, partName );
+                        this.addImage(this.part, partName);
                         this.setLastPart();
-                    } else if ( e.type === 'mousemove' ) {
-                        if ( this.haveMoved() ) {
-                            const [ part, lastPart] = updateMatrixByPath(this.matrix, this.part, this.lastPart);
-                            this.addImage( this.part, part.getName() );
-                            this.addImage( this.lastPart, lastPart.getName() );
+                    } else if (e.type === 'mousemove') {
+                        if (this.haveMoved()) {
+                            const [part, lastPart] = updateMatrixByPath(this.matrix, this.part, this.lastPart);
+                            this.addImage(this.part, part.getName());
+                            this.addImage(this.lastPart, lastPart.getName());
                             this.setLastPart();
                         }
                     }
                 }
-            });    
+            });
         });
+    }
+
+    keyDownHandler = (event) => {
+        // Need a starting part
+        if (!this.part) return;
+        // Only allow arrow keys
+        if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        // Prevent default behavior
+        event.preventDefault();
+        // Create a new part based on the current part
+        let keyPart = {...this.part};
+        if (event.key === "ArrowUp") {
+            // Move up
+            keyPart.y -= 1;
+        } else if (event.key === "ArrowDown") {
+            // Move down
+            keyPart.y += 1;
+        } else if (event.key === "ArrowLeft") {
+            // Move left
+            keyPart.x -= 1;
+        } else if (event.key === "ArrowRight") {
+            // Move right
+            keyPart.x += 1;
+        }
+        
+        const [part, lastPart] = updateMatrixByPath(this.matrix, keyPart, this.part);
+        this.addImage(keyPart, part.getName());
+        this.addImage(this.part, lastPart.getName());
+        this.part = keyPart;
+    }
+
+    bindKeyboardEvents() {
+        document.addEventListener('keydown', this.keyDownHandler);
+    }
+
+    teardown() {
+        document.removeEventListener('keydown', this.keyDownHandler);
     }
 
     // Check so last part is not null, and not the same part as the current part
     haveMoved() {
-        if ( !this.lastPart ) return false;
-        if ( !this.part ) return false;
+        if (!this.lastPart) return false;
+        if (!this.part) return false;
         return this.lastPart.x !== this.part.x || this.lastPart.y !== this.part.y;
     }
 
-    getButton( name ) {
-        return this.tools.getButton( name );
+    getButton(name) {
+        return this.tools.getButton(name);
     }
 
     getCanvas() {
@@ -259,12 +298,12 @@ export class DrawingSurface {
     }
 
     resetMatrix() {
-        this.matrix = createMatrix( this.grid );
+        this.matrix = createMatrix(this.grid);
         this.canvas.newGrid();
     }
 
     printMatrix() {
-        return createEmojiString( this.matrix );
+        return createEmojiString(this.matrix);
     }
 
     isDrawing() {
@@ -284,8 +323,8 @@ export class DrawingSurface {
         return this.eraser;
     }
 
-    setPart( event ) {
-        this.part = this.canvas.getGridPart( event );
+    setPart(event) {
+        this.part = this.canvas.getGridPart(event);
     }
 
     getPart() {
@@ -301,11 +340,11 @@ export class DrawingSurface {
     }
 
     resetGridPart() {
-        resetPart( this.matrix, this.part );
-        this.canvas.createGridPart( this.part );
+        resetPart(this.matrix, this.part);
+        this.canvas.createGridPart(this.part);
     }
 
-    addImage( coordinate, name ) {
-        this.canvas.addImage( coordinate, this.images[name] );
+    addImage(coordinate, name) {
+        this.canvas.addImage(coordinate, this.images[name]);
     }
 }

@@ -314,6 +314,7 @@ describe('Test creating a DrawingSurface', () => {
     });
 
     afterEach(() => {
+        drawingSurface.teardown();
         document.body.innerHTML = '';
     });
 
@@ -367,6 +368,7 @@ describe('Test the refresh button', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+        drawingSurface.teardown();
         document.body.innerHTML = '';
     });
 
@@ -378,30 +380,31 @@ describe('Test the refresh button', () => {
 
 describe('Test the pen and eraser button', () => {
     const ID = 'drawing-surface';
+    const grid = { x: 20, y: 20, size: 30 }
+    let drawingSurface;
+
     beforeEach(() => {
         // Override the getContext method of HTMLCanvasElement.prototype to return the fake context object
         HTMLCanvasElement.prototype.getContext = jest.fn(function () {return { fillRect: jest.fn(), fillStyle: '#222529', drawImage: jest.fn()}});
         const div = document.createElement('div');
         div.id = ID;
         document.body.appendChild(div);
+        drawingSurface = new DrawingSurface(ID, grid);
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
+        drawingSurface.teardown();
         document.body.innerHTML = '';
     });
 
     it('should set eraser to false when the pen button is pressed', () => {
-        const grid = { x: 20, y: 20, size: 30 }
-        const drawingSurface = new DrawingSurface(ID, grid);
         drawingSurface.eraser = true;
         drawingSurface.getButton('pen').getButton().click(); // simulate a click on the pen button
         expect(drawingSurface.eraser).toBe(false);
     });
 
     it('should set eraser to true when the eraser button is pressed', () => {
-        const grid = { x: 20, y: 20, size: 30 }
-        const drawingSurface = new DrawingSurface(ID, grid);
         drawingSurface.getButton('eraser').getButton().click(); // simulate a click on the eraser button
         expect(drawingSurface.eraser).toBe(true);
     });
@@ -411,6 +414,8 @@ describe('Test the pen and eraser button', () => {
 // Pressing copy button should call the printMatrix function
 describe('Test the copy button', () => {
     const ID = 'drawing-surface';
+    const grid = { x: 20, y: 20, size: 30 }
+    let drawingSurface;
 
     Object.assign(navigator, {
         clipboard: {
@@ -424,16 +429,16 @@ describe('Test the copy button', () => {
         const div = document.createElement('div');
         div.id = ID;
         document.body.appendChild(div);
+        drawingSurface = new DrawingSurface(ID, grid);
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
+        drawingSurface.teardown();
         document.body.innerHTML = '';
     });
 
     it('should call the printMatrix function when the copy button is pressed', () => {
-        const grid = { x: 20, y: 20, size: 30 }
-        const drawingSurface = new DrawingSurface(ID, grid);
         jest.spyOn(drawingSurface, 'printMatrix').mockImplementation(() => { });
         drawingSurface.getButton('copy').getButton().click(); // simulate a click on the copy button
         expect(drawingSurface.printMatrix).toHaveBeenCalledTimes(1);
@@ -456,11 +461,11 @@ describe('Test so we can reset a part of the grid', () => {
     });
 
     afterEach(() => {
+        drawingSurface.teardown();
         document.body.innerHTML = '';
     });
 
     it('should reset a part of the grid', () => {
-        drawingSurface.bindCanvasEvents();
         const matrix = drawingSurface.getMatrix();
         updateMatrix( matrix, { x: 10, y: 10 })
         expect(matrix[10][10]).toBe(Part.LONGCAT);
@@ -486,12 +491,11 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
     });
 
     afterEach(() => {
+        drawingSurface.teardown();
         document.body.innerHTML = '';
     });
 
     it('should return the correct part when the mouse is pressed', () => {
-        const callback = jest.fn();
-        drawingSurface.bindCanvasEvents( callback );
         const canvas = drawingSurface.getCanvas();
         const canvasElement = canvas.getCanvas();
         const event = new MouseEvent('mousedown', { clientX: 0, clientY: 0 });
@@ -501,7 +505,6 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
     });
 
     it('should draw on the canvas when the mouse is pressed and moved', () => {
-        drawingSurface.bindCanvasEvents();
         const canvas = drawingSurface.getCanvas();
         const canvasElement = canvas.getCanvas();
         const event = new MouseEvent('mousedown', {
@@ -525,8 +528,6 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
     });
 
     it('should stop drawing when the mouse is released', () => {
-        const callback = jest.fn();
-        drawingSurface.bindCanvasEvents( callback );
         const canvas = drawingSurface.getCanvas();
         const canvasElement = canvas.getCanvas();
         const event = new MouseEvent('mousedown', {
@@ -551,7 +552,6 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
     });
 
     it('should not draw when the mouse is moved without being pressed', () => {
-        drawingSurface.bindCanvasEvents();
         const canvas = drawingSurface.getCanvas();
         const canvasElement = canvas.getCanvas();
         const event = new MouseEvent('mousemove', {
@@ -566,7 +566,6 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
     });
 
     it('should not draw when the mouse is moved outside the canvas', () => {
-        drawingSurface.bindCanvasEvents();
         const canvas = drawingSurface.getCanvas();
         const canvasElement = canvas.getCanvas();
         const event = new MouseEvent('mousedown', {
@@ -589,7 +588,6 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
     });
 
     it('should call resetGridPart if erase is clicked and mouse move', () => {
-        drawingSurface.bindCanvasEvents();
         const canvas = drawingSurface.getCanvas();
         const canvasElement = canvas.getCanvas();
         const event = new MouseEvent('mousedown', {
@@ -614,9 +612,6 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
     });
 
     it('should test so haveMoved only is true if we have a last part and it is not equal to current part', () => {
-        drawingSurface.bindCanvasEvents();
-        const canvas = drawingSurface.getCanvas();
-        const canvasElement = canvas.getCanvas();
         const event = new MouseEvent('mousedown', {
             clientX: 5,
             clientY: 5,
@@ -647,7 +642,6 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
     });
 
     it('should only draw when the mosue move to the next grid part', () => {
-        drawingSurface.bindCanvasEvents( );
         const canvas = drawingSurface.getCanvas();
         const canvasElement = canvas.getCanvas();
         const event = new MouseEvent('mousedown', {
@@ -676,5 +670,96 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
         expect(drawingSurface.isDrawing()).toBe(true);
         expect(drawingSurface.getPart()).toEqual({ x: 1, y: 0 });
         expect(drawingSurface.addImage).toHaveBeenCalledTimes(3);
+    });
+});
+
+// Testing moving arround the canvas with the arrow keys
+describe('Testing moving arround the canvas with the arrow keys', () => {
+    let drawingSurface;
+    const grid = { x: 3, y: 3, size: 30 };
+    const ID = 'drawing-surface';
+
+    beforeEach(() => {
+        const div = document.createElement('div');
+        div.id = ID;
+        document.body.appendChild(div);
+        drawingSurface = new DrawingSurface(ID, grid);
+    });
+
+    afterEach(() => {
+        drawingSurface.teardown();
+        document.body.innerHTML = '';
+    });
+
+    it('should draw a cat upward', () => {
+        const keyEvent = new KeyboardEvent('keydown', {
+            key: 'ArrowUp',
+        });
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: 35,
+            clientY: 35,
+        });
+        jest.spyOn(drawingSurface, 'addImage');
+        drawingSurface.setPart(mouseEvent); // set the part to the middle
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 1 });
+        document. dispatchEvent(keyEvent); // move the part up
+        expect(drawingSurface.addImage).toHaveBeenCalledTimes(2);
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 0 });
+        expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 1, y: 1 }, Part.LEGS.getName());
+        expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 1, y: 0 }, Part.HEAD.getName());
+    });
+
+    it('should draw a cat downward', () => {
+        const keyEvent = new KeyboardEvent('keydown', {
+            key: 'ArrowDown',
+        });
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: 35,
+            clientY: 35,
+        });
+        jest.spyOn(drawingSurface, 'addImage');
+        drawingSurface.setPart(mouseEvent); // set the part to the middle
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 1 });
+        document.dispatchEvent(keyEvent); // move the part down
+        expect(drawingSurface.addImage).toHaveBeenCalledTimes(2);
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 2 });
+        expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 1, y: 1 }, Part.HEAD.getName());
+        expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 1, y: 2 }, Part.LEGS.getName());
+    });
+
+    it('should draw a cat to the left', () => {
+        const keyEvent = new KeyboardEvent('keydown', {
+            key: 'ArrowLeft',
+        });
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: 35,
+            clientY: 35,
+        });
+        jest.spyOn(drawingSurface, 'addImage');
+        drawingSurface.setPart(mouseEvent); // set the part to the middle
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 1 });
+        document.dispatchEvent(keyEvent); // move the part left
+        expect(drawingSurface.addImage).toHaveBeenCalledTimes(2);
+        expect(drawingSurface.getPart()).toEqual({ x: 0, y: 1 });
+        expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 1, y: 1 }, Part.LEGSRIGHT.getName());
+        expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 0, y: 1 }, Part.HEADLEFT.getName());
+    });
+
+    it('should draw a cat to the right', () => {
+        const keyEvent = new KeyboardEvent('keydown', {
+            key: 'ArrowRight',
+        });
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: 35,
+            clientY: 35,
+        });
+        jest.spyOn(drawingSurface, 'addImage');
+        drawingSurface.setPart(mouseEvent); // set the part to the middle
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 1 });
+        document.dispatchEvent(keyEvent); // move the part right
+        expect(drawingSurface.addImage).toHaveBeenCalledTimes(2);
+        expect(drawingSurface.getPart()).toEqual({ x: 2, y: 1 });
+        expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 1, y: 1 }, Part.HEADLEFT.getName());
+        expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 2, y: 1 }, Part.LEGSRIGHT.getName());
     });
 });
