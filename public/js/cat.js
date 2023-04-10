@@ -7,6 +7,7 @@ class PartObj {
     this.S = S;
     this.V = V;
   }
+  
   getConnections () {
     return {
       n: this.N,
@@ -14,6 +15,10 @@ class PartObj {
       v: this.V,
       e: this.E
     }
+  }
+
+  getName () {
+    return this.name
   }
 }
 
@@ -94,8 +99,10 @@ const checkDirection = ( part, lastPart ) => {
 
 const updateMatrixByPath = ( matrix, part, lastPart ) => {
     let pathPart = checkPart( part.x, part.y, matrix, checkDirection( part, lastPart ) );
+    let updatedLastPart = checkPart( lastPart.x, lastPart.y, matrix, checkDirection( lastPart, part ) );
     matrix[ part.y ][ part.x ] = pathPart;
-    return pathPart;
+    matrix[ lastPart.y ][ lastPart.x ] = updatedLastPart;
+    return [pathPart, updatedLastPart];
 }
 
 const resetPart = ( matrix, part ) => {

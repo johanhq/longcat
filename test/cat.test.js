@@ -182,18 +182,18 @@ describe('Testing updating the matrix by path', () =>
   test('Testing moving right', () => {    
     const matrix = createMatrix( { x: 3, y: 3 } );
     matrix[1][1] = Part.LONGCAT;
-    let part = updateMatrixByPath( matrix, { x: 2, y: 1 }, { x: 1, y: 1 } );
-    expect( part ).toBe( Part.LEGSRIGHT );
-    expect( matrix[1][1] ).toBe( Part.LONGCAT );
+    let parts = updateMatrixByPath( matrix, { x: 2, y: 1 }, { x: 1, y: 1 } );
+    expect( parts ).toStrictEqual( [Part.LEGSRIGHT, Part.HEADLEFT] );
+    expect( matrix[1][1] ).toBe( Part.HEADLEFT );
     expect( matrix[1][2] ).toBe( Part.LEGSRIGHT );
   });
 
   test('Testing moving left', () => {
     const matrix = createMatrix( { x: 3, y: 3 } );
     matrix[1][1] = Part.LONGCAT;
-    let part = updateMatrixByPath( matrix, { x: 0, y: 1 }, { x: 1, y: 1 } );
-    expect( part ).toBe( Part.HEADLEFT );
-    expect( matrix[1][1] ).toBe( Part.LONGCAT );
+    let parts = updateMatrixByPath( matrix, { x: 0, y: 1 }, { x: 1, y: 1 } );
+    expect( parts ).toStrictEqual( [Part.HEADLEFT, Part.LEGSRIGHT] );
+    expect( matrix[1][1] ).toBe( Part.LEGSRIGHT );
     expect( matrix[1][0] ).toBe( Part.HEADLEFT );
   });
 
@@ -202,18 +202,18 @@ describe('Testing updating the matrix by path', () =>
     matrix[1][1] = Part.LONGCAT;
     let part = { x: 1, y: 0 };
     let lastPart = { x: 1, y: 1 };
-    let checkedPart = updateMatrixByPath( matrix, part, lastPart );
-    expect( checkedPart ).toBe( Part.HEAD );
-    expect( matrix[1][1] ).toBe( Part.LONGCAT );
+    let checkedParts = updateMatrixByPath( matrix, part, lastPart );
+    expect( checkedParts ).toStrictEqual( [Part.HEAD, Part.LEGS] );
+    expect( matrix[1][1] ).toBe( Part.LEGS );
     expect( matrix[0][1] ).toBe( Part.HEAD );
   });
 
   test('Testing moving down', () => {
     const matrix = createMatrix( { x: 3, y: 3 } );
     matrix[1][1] = Part.LONGCAT;
-    let part = updateMatrixByPath( matrix, { x: 1, y: 2 }, { x: 1, y: 1 } );
-    expect( part ).toBe( Part.LEGS );
-    expect( matrix[1][1] ).toBe( Part.LONGCAT );
+    let parts = updateMatrixByPath( matrix, { x: 1, y: 2 }, { x: 1, y: 1 } );
+    expect( parts ).toStrictEqual( [Part.LEGS, Part.HEAD] );
+    expect( matrix[1][1] ).toBe( Part.HEAD );
     expect( matrix[2][1] ).toBe( Part.LEGS );
   });
 });

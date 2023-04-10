@@ -607,7 +607,6 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
         expect(drawingSurface.isDrawing()).toBe(true);
         expect(drawingSurface.getPart()).toEqual({ x: 0, y: 0 });
         expect(drawingSurface.resetGridPart).toHaveBeenCalledTimes(1);
-        expect(drawingSurface.getLastPart()).toEqual({ x: 0, y: 0 });
         canvasElement.dispatchEvent(event2);
         expect(drawingSurface.isDrawing()).toBe(true);
         expect(drawingSurface.getPart()).toEqual({ x: 1, y: 0 });

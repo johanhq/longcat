@@ -221,16 +221,16 @@ export class DrawingSurface {
                     if ( e.type === 'mousedown' ) {
                         const { name: partName } = updateMatrix(this.matrix, this.part);
                         this.addImage( this.part, partName );
+                        this.setLastPart();
                     } else if ( e.type === 'mousemove' ) {
                         if ( this.haveMoved() ) {
-                            const { name: partName } = updateMatrixByPath(this.matrix, this.part, this.lastPart);
-                            const { name: lastPartName } = updateMatrixByPath(this.matrix, this.lastPart, this.part);
-                            this.addImage( this.part, partName );
-                            this.addImage( this.lastPart, lastPartName );
+                            const [ part, lastPart] = updateMatrixByPath(this.matrix, this.part, this.lastPart);
+                            this.addImage( this.part, part.getName() );
+                            this.addImage( this.lastPart, lastPart.getName() );
+                            this.setLastPart();
                         }
                     }
                 }
-                this.setLastPart();
             });    
         });
     }
