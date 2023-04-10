@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "coverage": "NODE_OPTIONS=--experimental-vm-modules npx jest --coverage"
   },
   "jest": {
     "setupFiles": ["jest-canvas-mock"]

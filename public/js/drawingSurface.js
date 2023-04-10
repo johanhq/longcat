@@ -308,8 +308,4 @@ export class DrawingSurface {
     addImage( coordinate, name ) {
         this.canvas.addImage( coordinate, this.images[name] );
     }
-
-    updateMatrix( part, name ) {
-        updatePart( this.matrix, part, name );
-    }
 }
