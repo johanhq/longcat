@@ -1,11 +1,19 @@
 class PartObj {
-  constructor ( id, name, { N = false, E = false, S = false, V = false } ) {
+  constructor ( id, name, { N = 0, E = 0, S = 0, V = 0 } ) {
     this.id = id;
     this.name = name;
     this.N = N;
     this.E = E;
     this.S = S;
     this.V = V;
+  }
+  getConnections () {
+    return {
+      n: this.N,
+      s: this.S,
+      v: this.V,
+      e: this.E
+    }
   }
 }
 
@@ -31,9 +39,9 @@ const Part = {
     TS: new PartObj( 16, 'longcat_is_long_T_S', { E, S, V })
 };
 
-const createMatrix = ( {x, y} ) => {
-    let rows = new Array( y ).fill();
-    return rows.map( () => new Array( x ).fill(Part.BLANK));
+const createMatrix = ( { x: cols, y: rows } ) => {
+    let matrix = Array.from( { length: rows }, () => Array.from( { length: cols }, () => Part.BLANK ) );
+    return matrix
 }
 
 const getHeightAndWidth = matrix => {
@@ -46,47 +54,61 @@ const outOfBounce = ( X, Y, [ H, W ] ) => X < 0 || X >= W || Y < 0 || Y >= H;
 
 const getPart = ( x, y, HW, matrix) => outOfBounce( x, y, HW ) ? Part.BLANK : matrix[ y ][ x ];
 
-const getConnectingParts = ( x, y, matrix) => {
+const findConnections = ( x, y, matrix) => {
     const HW = getHeightAndWidth(matrix);
     return {
-        n: getPart( x, y-1, HW, matrix),
-        s: getPart( x, y+1, HW, matrix),
-        v: getPart( x-1, y, HW, matrix),
-        e: getPart( x+1, y, HW, matrix),
+        n: getPart( x, y-1, HW, matrix).S,
+        s: getPart( x, y+1, HW, matrix).N,
+        v: getPart( x-1, y, HW, matrix).E,
+        e: getPart( x+1, y, HW, matrix).V,
     }
 }
 
-const updateMatrix = ( { x, y }, matrix ) => {
-    matrix[y][x] = checkPart( x, y, matrix);
+const updateMatrix = ( matrix, { x, y } ) => {
+    let part = checkPart( x, y, matrix);
+    matrix[y][x] = part;
+    return part;
 }
 
-const checkPart = ( X, Y, matrix ) => {
-    let { n, s, v, e } = getConnectingParts( X, Y, matrix);
-    let thePart = Object.values(Part).find( part => part.N === n.S && part.E === e.V && part.S === s.N && part.V === v.E && part.id > 0);
+const compareConnections = ( connections, part ) => {
+    return JSON.stringify( connections ) === JSON.stringify( part.getConnections() ) && part.id > 0;
+}
+
+const checkPart = ( X, Y, matrix, override = {}) => {
+    let connections = findConnections( X, Y, matrix );
+    Object.assign( connections, override );
+    let thePart = Object.values(Part).find( part => compareConnections( connections, part ));
     return thePart ? thePart : Part.BLANK;
 }
 
-const checkByPath = ( part, lastPart ) => {
-    if ( part.x > lastPart.x ) {
-        return Part.LEGSRIGHT;
-    } else if ( part.x < lastPart.x ) {
-        return Part.HEADLEFT;
-    } else if ( part.y > lastPart.y ) {
-        return Part.LEGS;
-    } else if ( part.y < lastPart.y ) {
-        return Part.HEAD;
+const checkDirection = ( part, lastPart ) => {
+    let deltaX = part.x - lastPart.x;
+    let deltaY = part.y - lastPart.y;
+    if( Math.abs(deltaX) > Math.abs(deltaY) ) {
+        return deltaX > 0 ? {v:1} : {e:1}; 
+    } else if ( Math.abs(deltaX) < Math.abs(deltaY) ){
+        return deltaY > 0 ? {n:1} : {s:1}; 
     }
-} 
+    return {};
+}
+
+const updateMatrixByPath = ( matrix, part, lastPart ) => {
+    let pathPart = checkPart( part.x, part.y, matrix, checkDirection( part, lastPart ) );
+    matrix[ part.y ][ part.x ] = pathPart;
+    return pathPart;
+}
+
+const resetPart = ( matrix, part ) => {
+    matrix[ part.y ][ part.x ] = Part.BLANK;
+}
 
 const lastNonBlank = ( part ) => part !== Part.BLANK;
 
 const trimTrailingBlank = ( array ) => array.slice( 0, array.findLastIndex( lastNonBlank ) + 1 );
-
-
 
 const createEmojiString = matrix => {
     let trimmed = matrix.map( row => trimTrailingBlank( row ).map( part => `:${part.name}:`).join('') );
     return trimmed.slice( 0, trimmed.findLastIndex( row => row.length ) + 1 ).join('\n');
 }
 
-export { Part, getHeightAndWidth, checkPart, trimTrailingBlank, createEmojiString, checkByPath, getConnectingParts, createMatrix, updateMatrix }
+export { Part, getHeightAndWidth, checkPart, trimTrailingBlank, createEmojiString, createMatrix, updateMatrix, updateMatrixByPath, resetPart, findConnections, compareConnections, checkDirection }
