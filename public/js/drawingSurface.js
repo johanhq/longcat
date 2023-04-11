@@ -237,7 +237,7 @@ export class DrawingSurface {
         });
     }
 
-    keyDownHandler = (event) => {
+    #keyDownHandler = (event) => {
         // Need a starting part
         if (!this.part) return;
         // Only allow arrow keys
@@ -267,11 +267,11 @@ export class DrawingSurface {
     }
 
     bindKeyboardEvents() {
-        document.addEventListener('keydown', this.keyDownHandler);
+        document.addEventListener('keydown', this.#keyDownHandler);
     }
 
     teardown() {
-        document.removeEventListener('keydown', this.keyDownHandler);
+        document.removeEventListener('keydown', this.#keyDownHandler);
     }
 
     // Check so last part is not null, and not the same part as the current part
