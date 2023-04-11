@@ -191,12 +191,12 @@ export class DrawingSurface {
         this.eraser = false;
         this.lastPart = null;
         this.part = null;
-        this.bindButtonEvents();
-        this.bindCanvasEvents();
-        this.bindKeyboardEvents();
+        this.#bindButtonEvents();
+        this.#bindCanvasEvents();
+        this.#bindKeyboardEvents();
     }
 
-    bindButtonEvents() {
+    #bindButtonEvents() {
         initButtons(this.tools.getButtons(), () => {
             return this.printMatrix();
         }, (eraseMode) => {
@@ -206,7 +206,7 @@ export class DrawingSurface {
         });
     }
 
-    bindCanvasEvents() {
+    #bindCanvasEvents() {
         ['mousedown', 'mousemove', 'mouseup'].forEach((event) => {
             this.canvas.getCanvas().addEventListener(event, (e) => {
                 if (e.type === 'mousedown') this.startDrawing(); // Set drawing to true when mouse is down
@@ -266,7 +266,7 @@ export class DrawingSurface {
         this.part = keyPart;
     }
 
-    bindKeyboardEvents() {
+    #bindKeyboardEvents() {
         document.addEventListener('keydown', this.#keyDownHandler);
     }
 
