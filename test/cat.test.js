@@ -150,6 +150,10 @@ describe('Checking part with an overriden connection', () => {
   test('Is it the body?', () => {
     expect( checkPart( 1, 1, matrix, {n:1, s:1} ) ).toBe( Part.BODY );
   });
+
+  test('Is it returning an blank part with faulty override?', () => {
+    expect( checkPart( 1, 1, matrix, {n:1, s:1, e:1, w:1} ) ).toBe( Part.BLANK );
+  });
 });
   
 

@@ -7,7 +7,7 @@ class PartObj {
     this.S = S;
     this.V = V;
   }
-  
+
   getConnections () {
     return {
       n: this.N,
@@ -82,9 +82,11 @@ const compareConnections = ( connections, part ) => {
 const checkPart = ( X, Y, matrix, override = {}) => {
     let connections = findConnections( X, Y, matrix );
     Object.assign( connections, override );
-    let thePart = Object.values(Part).find( part => compareConnections( connections, part ));
+    let thePart = getPartByConnections( connections );
     return thePart ? thePart : Part.BLANK;
 }
+
+export const getPartByConnections = ( connections ) => Object.values(Part).find( part => compareConnections( connections, part )); 
 
 const checkDirection = ( part, lastPart ) => {
     let deltaX = part.x - lastPart.x;
