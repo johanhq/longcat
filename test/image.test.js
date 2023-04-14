@@ -41,4 +41,9 @@ describe('createImage', () => {
         expect(img.src).toEqual(`http://localhost/img/${name}.png`);
       });
     });
+
+    it('returns an empty object if no input is provided', () => {
+      const result = preeLoadImages();
+      expect(result).toEqual({});
+    });
   });
