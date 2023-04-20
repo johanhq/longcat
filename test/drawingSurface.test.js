@@ -4,6 +4,7 @@
 
 import { Canvas, DrawingSurface, Separator, Button, Icon, Tools, BUTTONS_AND_SEPARATORS } from '../public/js/drawingSurface';
 import { Part, updateMatrix } from '../public/js/cat';
+import { SnakeCat } from '../public/js/snakeCat';
 import { jest } from '@jest/globals';
 import 'jest-canvas-mock';
 
@@ -439,7 +440,7 @@ describe('Test the copy button', () => {
     });
 
     it('should call the printMatrix function when the copy button is pressed', () => {
-        jest.spyOn(drawingSurface, 'printMatrix').mockImplementation(() => { });
+        jest.spyOn(drawingSurface, 'printMatrix');
         drawingSurface.getButton('copy').getButton().click(); // simulate a click on the copy button
         expect(drawingSurface.printMatrix).toHaveBeenCalledTimes(1);
     });
@@ -611,7 +612,7 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
         expect(drawingSurface.resetGridPart).toHaveBeenCalledTimes(2);
     });
 
-    it('should test so haveMoved only is true if we have a last part and it is not equal to current part', () => {
+    it('should test so canMove only is true if we have a last part and it is not equal to current part', () => {
         const event = new MouseEvent('mousedown', {
             clientX: 5,
             clientY: 5,
@@ -627,19 +628,44 @@ describe('Test interacting with the canvas for the drawingSurface', () => {
 
         drawingSurface.setPart(event);
         expect(drawingSurface.getPart()).toEqual({ x: 0, y: 0 });
-        expect(drawingSurface.haveMoved()).toBe(false);
+        expect(drawingSurface.canMove()).toBe(false);
         drawingSurface.setLastPart();
         expect(drawingSurface.getLastPart()).toEqual({ x: 0, y: 0 });
-        expect(drawingSurface.haveMoved()).toBe(false);
+        expect(drawingSurface.canMove()).toBe(false);
         drawingSurface.setPart(event2);
         expect(drawingSurface.getPart()).toEqual({ x: 1, y: 0 });
-        expect(drawingSurface.haveMoved()).toBe(true);
+        expect(drawingSurface.canMove()).toBe(true);
         drawingSurface.setLastPart();
         expect(drawingSurface.getLastPart()).toEqual({ x: 1, y: 0 });
         drawingSurface.setPart(event3);
         expect(drawingSurface.getPart()).toEqual({ x: 1, y: 0 });
-        expect(drawingSurface.haveMoved()).toBe(false);
+        expect(drawingSurface.canMove()).toBe(false);
     });
+
+    it('should not move if we have a last part and not a current part', () => {
+        const event = new MouseEvent('mousedown', {
+            clientX: 5,
+            clientY: 5,
+        });
+        const event2 = new MouseEvent('mousemove', {
+            clientX: 3500,
+            clientY: 1500,
+        });
+        const event3 = new MouseEvent('mousemove', {
+            clientX: 37, 
+            clientY: 15,
+        }); 
+        drawingSurface.setPart(event);
+        expect(drawingSurface.getPart()).toEqual({ x: 0, y: 0 });
+        expect(drawingSurface.canMove()).toBe(false);
+        drawingSurface.setLastPart();
+        drawingSurface.setPart(event3);
+        expect(drawingSurface.canMove()).toBe(true);
+        drawingSurface.setPart(event2);
+        expect(drawingSurface.getPart()).toEqual(null);
+        expect(drawingSurface.canMove()).toBe(false);
+    });
+        
 
     it('should only draw when the mosue move to the next grid part', () => {
         const canvas = drawingSurface.getCanvas();
@@ -761,5 +787,100 @@ describe('Testing moving arround the canvas with the arrow keys', () => {
         expect(drawingSurface.getPart()).toEqual({ x: 2, y: 1 });
         expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 1, y: 1 }, Part.HEADLEFT.getName());
         expect(drawingSurface.addImage).toHaveBeenCalledWith({ x: 2, y: 1 }, Part.LEGSRIGHT.getName());
+    });
+
+    it('should not draw a cat when pressing g', () => {
+        const keyEvent = new KeyboardEvent('keydown', {
+            key: 'g',
+        });
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: 35,
+            clientY: 35,
+        });
+        jest.spyOn(drawingSurface, 'addImage');
+        drawingSurface.setPart(mouseEvent); // set the part to the middle
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 1 });
+        document.dispatchEvent(keyEvent); // move the part right
+        expect(drawingSurface.addImage).toHaveBeenCalledTimes(0);
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 1 });
+    });
+
+    it('should not draw a cat when moving outside of grid', () => {
+        const keyEvent = new KeyboardEvent('keydown', {
+            key: 'ArrowUp',
+        });
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: 35,
+            clientY: 5,
+        });
+        jest.spyOn(drawingSurface, 'addImage');
+        drawingSurface.setPart(mouseEvent); // set the part to the top
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 0 });
+        document.dispatchEvent(keyEvent); // move the part up
+        expect(drawingSurface.addImage).toHaveBeenCalledTimes(0);
+        expect(drawingSurface.getPart()).toEqual({ x: 1, y: 0 });
+    });
+});
+
+describe('Testing starting the game', () => {
+    let drawingSurface;
+    const grid = { x: 3, y: 3, size: 30 };
+    const ID = 'drawing-surface';
+
+    beforeEach(() => {
+        const div = document.createElement('div');
+        div.id = ID;
+        document.body.appendChild(div);
+        drawingSurface = new DrawingSurface(ID, grid);
+    });
+
+    afterEach(() => {
+        drawingSurface.teardown();
+        document.body.innerHTML = '';
+    });
+
+    it('should start the game', () => {
+        const event = new KeyboardEvent('keydown', {
+            key: 's',
+        });
+        document.dispatchEvent(event);
+        expect(drawingSurface._sc).toBeDefined();
+        expect(drawingSurface._sc).toBeInstanceOf(SnakeCat);
+    });
+
+    it('should not start the game', () => {
+        const event = new KeyboardEvent('keydown', {
+            key: 'a',
+        });
+        document.dispatchEvent(event);
+        expect(drawingSurface._sc).toBeUndefined();
+    });
+
+    it('should start the game and change the direction when an arrow key is pressed', () => {
+        const event = new KeyboardEvent('keydown', {
+            key: 's',
+        });
+        const event2 = new KeyboardEvent('keydown', {
+            key: 'ArrowLeft',
+        });
+        document.dispatchEvent(event);
+        expect(drawingSurface._sc).toBeDefined();
+        expect(drawingSurface._sc).toBeInstanceOf(SnakeCat);
+        document.dispatchEvent(event2);
+        expect(drawingSurface._sc.getDirection()).toEqual('ArrowLeft');
+    });
+
+    it('should not start the game twice', () => {
+        const event = new KeyboardEvent('keydown', {
+            key: 's',
+        });
+        document.dispatchEvent(event);
+        let sc = drawingSurface._sc;
+        expect(drawingSurface._sc).toBeDefined();
+        expect(drawingSurface._sc).toBeInstanceOf(SnakeCat);
+        document.dispatchEvent(event);
+        expect(drawingSurface._sc).toBeDefined();
+        expect(drawingSurface._sc).toBeInstanceOf(SnakeCat);
+        expect(drawingSurface._sc).toEqual(sc);
     });
 });
